@@ -1,0 +1,8 @@
+{
+	"dbhost": "localhost",
+	"dbuser": "root",
+	"dbpass": null,
+	"dbname": "chatapp",
+
+	"logging": null
+}
