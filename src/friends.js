@@ -4,29 +4,42 @@ module.exports = (io, socket, args) => {
 
 	let Users = mod.model('user');
 	let Friends = mod.model('friends');
+	let Op = Sequelize.Op;
+
+	let userId = clientData[socket.id].userid;
 
 	if(args.type == 'get') {
-		Users.find({ where: {id: clientData[socket.id].userid} }).then(user => {		
-			user.getFriend().then(friends => {
-				for (let i = 0; i < friends.length; i++) socket.emit('friend-add', {
-					id:       friends[i].id,
-					username: friends[i].username
-				});
-			});
-			user.getFriend2().then(friends => {
-				for (let i = 0; i < friends.length; i++) socket.emit('friend-add', {
-					id:       friends[i].id,
-					username: friends[i].username
-				});
-			});
+		Friends.findAll({
+			where: {
+				[Op.or]: [
+					{userId:   userId},
+					{friendId: userId}
+				]
+			} 
+		}).then(async friends => {
+			let results = [];
+
+			for (let i = 0; i < friends.length; i++) {
+				if(friends[i].userId == userId) await Users.find({ where: {id: friends[i].friendId} }).then(user => results.push({
+					id:       user.id,
+					username: user.username
+				}));
+				else await Users.find({ where: {id: friends[i].userId} }).then(user => results.push({
+					id:       user.id,
+					username: user.username
+				}));
+			}
+
+			socket.emit('friend-add', results);
 		});
+
 	} else if(args.type == 'add') {
 		console.log('Adding user');
 		Users.find({ where: {id: clientData[socket.id].userid} }).then(user => {
 			Users.find({ where: {id: args.friendId} }).then(friend => {
-				socket.send('friend-add', friend);
+				socket.send('friend-add', [friend]);
 				Friends.create({
-					userId: user.id,
+					userId:   user.id,
 					friendId: friend.id,
 					status: 1
 				});
