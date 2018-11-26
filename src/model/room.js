@@ -8,6 +8,10 @@ let Room = sequelize.define('room', {
 		type: Sequelize.STRING,
 		allowNull: true
 	},
+	owner: {
+		type: Sequelize.STRING,
+		allowNull: false
+	},
 	status: {
 		type: Sequelize.INTEGER,
 		allowNull: false
