@@ -13,7 +13,7 @@ let Messages = sequelize.define('messages', {
 		allowNull: false
 	},
 	message: {
-		type: Sequelize.TEXT,
+		type: Sequelize.TEXT('tiny'),
 		allowNull: false
 	}
 }, {

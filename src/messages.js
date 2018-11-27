@@ -1,41 +1,56 @@
-module.exports = (io, socket, args) => {
+module.exports = (io, socket, args, callback) => {
 
-	if(!clientData[socket.id].loggedin) return socket.emit('logout');
+	let Messages = mod.model('messages');
 
-	let messagesModel = mod.model('messages');
+	if(args.type == 'get') Messages.findAll({ where: {roomId: args.roomId} }).then(async messages => {
+		
+		if(!messages) return callback({
+			success:  true,
+			messages: false
+		});
 
-	if(args.type == 'get') messagesModel.findAll({ where: {roomId: args.roomId} }).then(messages => {
+		let response = [];
 
-		if(messages.length) {
-			let response = [];
+		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => response.push({
+			id:        messages[i].id,
+			userId:    user ? user.id : false,
+			username:  user.status != 1 ? user.username : '[Removed]',
+			message:   message[i].message,
+			createdAt: messages[i].createdAt,
+			updatedAt: messages[i].updatedAt
+		}));
 
-			for (let i = 0; i < messages.length; i++) messages[i].getUser().then(user => {
-				response.push({
-					id: messages[i].id,
-					userId: user.id,
-					username: user.username,
-					message: messages[i].message,
-					createdAt: messages[i].createdAt,
-					updatedAt: messages[i].updatedAt
-				});
+		return callback({
+			success: true,
+			messages: response
+		});
+	});
 
-				if(messages.length -1 == i) socket.emit('message-add', response);
+	else if (args.type == 'send') {
+
+		if(args.message.length < 1 || 255 > args.message.length) return callback({
+			success: false,
+			error:   'error.messages.short'
+		});
+
+		Messages.create({
+			roomId:  args.roomId,
+			userId:  clientData[socket.id].userid,
+			message: args.message
+		}).then(message => {
+
+			if(!message) return callback({
+				success: false,
+				error:   'error.database.action'
 			});
-		} else socket.emit('message-add', false);
-	});
 
-	else if (args.type == 'send') messagesModel.create({
-		roomId: args.roomId,
-		userId: clientData[socket.id].userid,
-		message: args.message
-	}).then(message => {
-		if(message) io.to('room-'+ args.roomId).emit('message-add', [{
-			id: message.id,
-			userId: message.userId,
-			username: clientData[socket.id].username,
-			message: message.message,
-			createdAt: message.createdAt,
-			updatedAt: message.updatedAt
-		}]);
-	});
+			io.to('room-' + args.roomId).emit('message-add', [{
+				id:        message.id,
+				userId:    message.userId,
+				message:   message.message,
+				createdAt: message.createdAt,
+				updatedAt: message.updatedAt
+			}]);
+		});
+	}
 }
