@@ -19,7 +19,7 @@ io.on('connection', (socket) => {
 		username: 'Anonymous'
 	};
 	socket.emit('connected');
-	socket.on('action', (type, args = {}) => (mod.action(type))(io, socket,args));
+	socket.on('action', (type, args = {}, callback) => (mod.action(type))(io, socket,args, callback));
 	socket.on('toastall', () => io.emit('toast'));
 	socket.on('clientdata', () => socket.emit('test', clientData));
 	socket.on('disconnect', () => delete clientData[socket.id]);
