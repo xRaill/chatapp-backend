@@ -1,23 +1,34 @@
-module.exports = (io, socket, args) => {
+module.exports = (io, socket, args, callback) => {
 
-	let userModel = mod.model('user');
-	let tokensModel = mod.model('tokens');
+	let Tokens = mod.model('tokens'); 
+	let Users  = mod.model('users');
 
-	tokensModel.findOne({ where: { token: args.token, status: 1} }).then(token => {
+	Tokens.find({ where: {token: args.token, status: 1} }).then(token => {
 
-		if(token) userModel.findOne({ where: {id: token.userId} }).then(user => {
+		if(!token) return callback({
+			success: false,
+			error:   'error.authenticate.no-token'
+		});
+
+		Users.find({ where: {id: token.userId} }).then(user => {
+
+			if(!user) return callback({
+				success: false,
+				error:   'error.authenticate.invalid-token'
+			});
+
 			clientData[socket.id].loggedin = true;
 			clientData[socket.id].username = user.username;
-			clientData[socket.id].userid = user.id;
-			socket.emit('authenticate-return', {
-				userId: user.id,
+			clientData[socket.id].userid   = user.id;
+			
+			return callback({
+				success:  true,
+				userId:   user.id,
 				username: user.username
 			});
-			// user.getTokens().then(user => console.log(user.dataValues));
-		});
-		else socket.emit('router', 'login');
 
-		// token.getUser().then(user => console.log(user.dataValues));
+		});
+
 	});
 
 }
