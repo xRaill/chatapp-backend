@@ -1,7 +1,7 @@
 module.exports = (io, socket, args, callback) => {
 
 	let Tokens = mod.model('tokens'); 
-	let Users  = mod.model('users');
+	let Users  = mod.model('user');
 
 	Tokens.find({ where: {token: args.token, status: 1} }).then(token => {
 
