@@ -1,4 +1,4 @@
-module.exports = (io, socket, args) => {
+module.exports = (io, socket, args, callback) => {
 
 	let Users  = mod.model('user');
 	let Access = mod.model('access');
@@ -12,7 +12,10 @@ module.exports = (io, socket, args) => {
 
 		for (let i = 0; i < access.length; i++) await Rooms.find({ where: {id: access[i].roomId} }).then(room => results.push(room));
 
-		socket.emit('rooms-add', results.length ? results : false);
+		return callback({
+			success: true,
+			rooms: results
+		});
 	});
 
 	else if(args.type == 'create') Users.find({ where: {id: userId} }).then(user => {
@@ -24,7 +27,10 @@ module.exports = (io, socket, args) => {
 			userId: userId,
 			roomId: room.id,
 			status: 1
-		}).then(access => socket.emit('rooms-add', [room])));
+		}).then(access => callback({
+			success: true,
+			rooms: [room]
+		})));
 	});
 
 	else if(args.type == 'remove') Users.find({ where: {id: userId}}).then(async user => {
@@ -49,7 +55,10 @@ module.exports = (io, socket, args) => {
 				owner: (owner == user.id)
 			}));
 
-			socket.emit('rooms-users-get');
+			return callback({
+				success: true,
+				users: results
+			});
 		});
 	});
 
@@ -90,5 +99,37 @@ module.exports = (io, socket, args) => {
 		}).then(access => access.update({status: 9}).then(access2 => results.push(access2.userId)));
 
 		io.to('room-' + args.roomId).emit('rooms-users-remove', results);
+	});
+
+	else if(args.type == 'users-leave') Access.findOne({ where: {roomId: args.roomId, userId: userId} }).then(access => {
+
+		if(!access) return callback({
+			success: false,
+			error:   'error.no-access'
+		});
+
+		Rooms.findOne({ where: {id: access.roomId, owner: userId} }).then(room => {
+
+			if(room) return callback({
+				success: false,
+				error:   'error.rooms.owner-cant-leave'
+			});
+
+			access.update({
+				status: 9
+			}).then(access2 => {
+
+				io.to('room-' + access.roomId).emit('rooms-users-remove', [access.userId]);
+
+				return callback({
+					success: true,
+				});
+			});
+		});
+	});
+
+	else callback({
+		success: false,
+		error:   'error.rooms.type-not-found'
 	});
 }
