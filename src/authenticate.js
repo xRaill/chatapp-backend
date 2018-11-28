@@ -2,6 +2,7 @@ module.exports = (io, socket, args, callback) => {
 
 	let Tokens = mod.model('tokens'); 
 	let Users  = mod.model('user');
+	let Access = mod.model('access');
 
 	Tokens.find({ where: {token: args.token, status: 1} }).then(token => {
 
@@ -21,6 +22,10 @@ module.exports = (io, socket, args, callback) => {
 			clientData[socket.id].username = user.username;
 			clientData[socket.id].userid   = user.id;
 			
+			Access.findAll({ where: {userId: user.id, status: 1} }).then(access => {
+				for (let i = 0; i < access.length; i++) socket.join('room-'+ access[i].roomId)
+			});
+
 			return callback({
 				success:  true,
 				userId:   user.id,
