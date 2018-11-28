@@ -15,7 +15,7 @@ module.exports = (io, socket, args, callback) => {
 			id:        messages[i].id,
 			userId:    user ? user.id : false,
 			username:  user.status != 1 ? user.username : '[Removed]',
-			message:   message[i].message,
+			message:   messages[i].message,
 			createdAt: messages[i].createdAt,
 			updatedAt: messages[i].updatedAt
 		}));
@@ -26,9 +26,9 @@ module.exports = (io, socket, args, callback) => {
 		});
 	});
 
-	else if (args.type == 'send') {
+	else if(args.type == 'send') {
 
-		if(args.message.length < 1 || 255 > args.message.length) return callback({
+		if(args.message.length < 1 || 255 < args.message.length) return callback({
 			success: false,
 			error:   'error.messages.short'
 		});
@@ -51,6 +51,10 @@ module.exports = (io, socket, args, callback) => {
 				createdAt: message.createdAt,
 				updatedAt: message.updatedAt
 			}]);
+
+			return callback({
+				success: true
+			});
 		});
 	}
 }
