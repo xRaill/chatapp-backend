@@ -14,7 +14,7 @@ module.exports = (io, socket, args, callback) => {
 		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => response.push({
 			id:        messages[i].id,
 			userId:    user ? user.id : false,
-			username:  user.status != 1 ? user.username : '[Removed]',
+			username:  user.status == 1 ? user.username : '[Removed]',
 			message:   messages[i].message,
 			createdAt: messages[i].createdAt,
 			updatedAt: messages[i].updatedAt
