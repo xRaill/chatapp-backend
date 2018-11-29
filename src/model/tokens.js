@@ -9,8 +9,12 @@
 		allowNull: false
 	},
 	token: {
-		type: Sequelize.STRING,
+		type: Sequelize.STRING(40),
 		allowNull: false
+	},
+	keep: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: false
 	},
 	status: {
 		type: Sequelize.INTEGER,

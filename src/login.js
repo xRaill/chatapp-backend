@@ -1,4 +1,5 @@
 let bcrypt = require('bcryptjs');
+let crypto = require('crypto');
 
 module.exports = (io, socket, args, callback) => {
 
@@ -25,29 +26,29 @@ module.exports = (io, socket, args, callback) => {
 				error:   'error.login.access-denied'
 			});
 
-			clientData[socket.id].loggedin = true;
-			clientData[socket.id].username = user.username;
-			clientData[socket.id].userid   = user.id;
 
 			Access.findAll({ where: {userId: user.id, status: 1} }).then(access => {
 				for (let i = 0; i < access.length; i++) socket.join('room-'+ access[i].roomId)
 			});
 
-			if(args.accessToken) Tokens.create({
+			Tokens.create({
 				userId: user.id,
-				token:  bcrypt.genSaltSync(8),
+				token:  crypto.randomBytes(20).toString('hex'),
+				keep:   args.stayLoggedIn ? true : false,
 				status: 1
-			}).then(token => callback({
-				success:  true,
-				userId:   user.id,
-				username: user.username,
-				token:    token.token
-			}));
+			}).then(token => {
 
-			else callback({
-				success:  true,
-				userId:   user.id,
-				username: user.username
+				clientData[socket.id].loggedin = true;
+				clientData[socket.id].username = user.username;
+				clientData[socket.id].userid   = user.id;
+				clientData[socket.id].token    = token.token;
+
+				return callback({
+					success:  true,
+					userId:   user.id,
+					username: user.username,
+					token:    token.token
+				});
 			});
 		});
 	});

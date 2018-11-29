@@ -11,6 +11,14 @@ module.exports = (io, socket, args, callback) => {
 			error:   'error.authenticate.no-token'
 		});
 
+		let date = new Date(token.updatedAt);
+		date = date.setMinutes(date.getMinutes() +20);
+
+		if(!token.keep && new Date() > date) return token.destroy().then(token => callback({
+			success: false,
+			error:   'error.authenticate.token-outdated'
+		}));
+
 		Users.find({ where: {id: token.userId} }).then(user => {
 
 			if(!user) return callback({
@@ -18,22 +26,28 @@ module.exports = (io, socket, args, callback) => {
 				error:   'error.authenticate.invalid-token'
 			});
 
-			clientData[socket.id].loggedin = true;
-			clientData[socket.id].username = user.username;
-			clientData[socket.id].userid   = user.id;
-			
+			if(user.status == 8) return callback({
+				success: false,
+				error:   'error.authenticate.banned'
+			});
+
+			Tokens.update({ updatedAt: null }, { where: {token: token.token}});
+
 			Access.findAll({ where: {userId: user.id, status: 1} }).then(access => {
 				for (let i = 0; i < access.length; i++) socket.join('room-'+ access[i].roomId)
 			});
 
+			clientData[socket.id].loggedin = true;
+			clientData[socket.id].username = user.username;
+			clientData[socket.id].userid   = user.id;
+			clientData[socket.id].token    = token.token;			
+
 			return callback({
 				success:  true,
 				userId:   user.id,
-				username: user.username
+				username: user.username,
+				token:    token.token
 			});
-
 		});
-
 	});
-
 }

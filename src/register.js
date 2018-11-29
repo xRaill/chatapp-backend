@@ -1,8 +1,10 @@
 let bcrypt = require('bcryptjs');
+let crypto = require('crypto');
 
 module.exports = (io, socket, args, callback) => {
 
-	let Users = mod.model('user');
+	let Tokens = mod.model('tokens'); 
+	let Users  = mod.model('user');
 
 	Users.find({ where: {username: args.username}}).then(res => {
 		
@@ -37,14 +39,24 @@ module.exports = (io, socket, args, callback) => {
 				error:   'error.database.action'
 			});
 
-			clientData[socket.id].loggedin = true;
-			clientData[socket.id].username = user.username;
-			clientData[socket.id].userid   = user.id;
+			Tokens.create({
+				userId: user.id,
+				token:  crypto.randomBytes(20).toString('hex'),
+				keep:   args.stayLoggedIn ? true : false,
+				status: 1
+			}).then(token => {
 
-			return callback({
-				success:  true,
-				userId:   user.id,
-				username: user.username
+				clientData[socket.id].loggedin = true;
+				clientData[socket.id].username = user.username;
+				clientData[socket.id].userid   = user.id;
+				clientData[socket.id].token    = token.token;
+
+				return callback({
+					success:  true,
+					userId:   user.id,
+					username: user.username,
+					token:    token.token
+				});
 			});
 		}));
 	});

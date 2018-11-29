@@ -30,7 +30,14 @@ mod.action('database', () => {
 		socket.on('action', (type, args = {}, callback = () => {}) => mod.action(type, io, socket, args, callback));
 		socket.on('toastall', () => io.emit('toast'));
 		socket.on('clientdata', () => socket.emit('test', clientData));
-		socket.on('disconnect', () => delete clientData[socket.id]);
+		
+		socket.on('disconnect', () => {
+			let Tokens = mod.model('tokens');
+
+			Tokens.update({ updatedAt: null }, { where: {token: clientData[socket.id].token} });
+
+			delete clientData[socket.id];
+		});
 	});
 
 });
