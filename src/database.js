@@ -1,6 +1,6 @@
 let fs = require('fs');
 
-module.exports = () => {
+module.exports = (callback) => {
 
 	fs.readFile('settings.json', 'utf8', (err, data) => {
 
@@ -26,10 +26,16 @@ module.exports = () => {
 		});
 
 		sequelize.authenticate().then(() => {
-			console.log("\x1b[44m", 'Database connection successfull.', "\x1b[0m");
+			console.log("\x1b[44m", 'Database connection successful', "\x1b[0m");
 
 			// Check and update all models
-			fs.readdir('./src/model/', (err, files) => files.forEach(file => mod.model(file.split('.')[0]).sync({ alter: true })));
+			fs.readdir('./src/model/', (err, files) => {
+				let i = files.length -1;
+				files.forEach((file, a) => mod.model(file.split('.')[0]).sync({ alter: true }).then(result => {
+					console.log("\x1b[44m" ,'synchronized', file.split('.')[0], "\x1b[0m");
+					if(!i--) callback(); 
+				}));
+			});
 
 		}).catch(err => {
 			console.log("\x1b[41m", 'Unable to connect to the database: ', err, "\x1b[0m");

@@ -13,7 +13,7 @@ module.exports.model = (model) => {
 	return res;
 }
 
-module.exports.action = (action) => {
+module.exports.action = (action, a, b, c, d) => {
 	let res;
 
 	console.log('Requesting action: ' + action)
@@ -27,6 +27,6 @@ module.exports.action = (action) => {
 			console.log("\x1b[41m", "'"+ action +"' action error:", err, "\x1b[0m");
 			process.exit();
 		}
-		return res;
+		return res(a, b, c, d);
 	} else return () => console.log("\x1b[41m", "Action '"+ action +"' requested but does not exist", "\x1b[0m");
 }
