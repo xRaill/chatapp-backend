@@ -43,7 +43,7 @@ module.exports = (io, socket, args, callback) => {
 			message: args.message
 		}).then(message => {
 
-			io.to('room-' + args.roomId).emit('message-add', [{
+			io.to('room-' + args.roomId).emit('messages-add', [{
 				id:        message.id,
 				userId:    message.userId,
 				message:   message.message,
