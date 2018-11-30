@@ -76,9 +76,17 @@ module.exports = (io, socket, args, callback) => {
 	else if(args.type == 'users-promote') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(room => {
 
 		Users.find({ where: {id: args.userId} }).then(user => {
-			room.update({ owner: user.id }).then(room => io.to('room-' + args.roomId).emit('rooms-users-promote'), {
-				newOwner: user.id,
-				oldOwner: userId
+			room.update({ owner: user.id }).then(room => {
+
+				let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+		
+				if(socketId) io.sockets.connected[socketId].socket.emit('rooms-promoted', {
+					roomName: room.name
+				});
+
+				return callback({
+					success: true
+				});
 			});
 		});
 	});
@@ -96,8 +104,8 @@ module.exports = (io, socket, args, callback) => {
 			// Get socketid
 			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
 
-			if(socketId) io.sockets.connected[socketId].socket.join('room-' + room.id);
 			if(socketId) io.sockets.connected[socketId].socket.emit('rooms-add', [room]);
+			if(socketId) io.sockets.connected[socketId].socket.join('room-' + room.id);
 
 			results.push({
 				id:       user.id,
@@ -105,7 +113,9 @@ module.exports = (io, socket, args, callback) => {
 			});
 		}));
 
-		io.to('room-' + args.roomId).emit('rooms-users-add', results);
+		return callback({
+			success: true
+		})
 	});
 
 	else if(args.type == 'users-remove') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(async room => {
@@ -118,13 +128,15 @@ module.exports = (io, socket, args, callback) => {
 		}).then(access => access.update({status: 9}).then(access2 => {
 			let socketId = Object.entries(clientData).find(a => a[1].userid == access.userId);
 	
-			if(socketId) io.sockets.connected[socketId].socket.emit('rooms-remove', [room]);
 			if(socketId) io.sockets.connected[socketId].socket.leave('room-' + access.roomId);
+			if(socketId) io.sockets.connected[socketId].socket.emit('rooms-remove', [room]);
 
-			return results.push(access2.userId);
+			results.push(access2.userId);
 		}));
 
-		io.to('room-' + args.roomId).emit('rooms-users-remove', results);
+		return callback({
+			success: true
+		});
 	});
 
 	else if(args.type == 'users-leave') Access.findOne({ where: {roomId: args.roomId, userId: userId} }).then(access => {
@@ -144,7 +156,6 @@ module.exports = (io, socket, args, callback) => {
 			access.update({ status: 9 }).then(access2 => {
 				Rooms.find({ where: {id: args.roomId} }).then(room => socket.emit('rooms-remove', [room]));
 				socket.leave('room-' + args.roomId)
-				io.to('room-' + access.roomId).emit('rooms-users-remove', [access.userId]);
 
 				return callback({
 					success: true,
