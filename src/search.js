@@ -1,4 +1,4 @@
-module.exports = (io, socket, args)=> {
+module.exports = (io, socket, args, callback)=> {
 
 	let userModel = mod.model('user');
 	let OP = Sequelize.Op;
@@ -15,7 +15,10 @@ module.exports = (io, socket, args)=> {
 
 		for (var i = 0; i < users.length; i++) usernames.push(users[i].username);
 
-		socket.emit('search-response', usernames);
+		return callback({
+			success:   true,
+			usernames: usernames
+		});
 	});
 
 }
