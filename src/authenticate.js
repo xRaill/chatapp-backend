@@ -8,7 +8,7 @@ module.exports = (io, socket, args, callback) => {
 
 		if(!token) return callback({
 			success: false,
-			error:   'error.authenticate.no-token'
+			error:  'Token not found.'
 		});
 
 		let date = new Date(token.updatedAt);
@@ -16,19 +16,19 @@ module.exports = (io, socket, args, callback) => {
 
 		if(!token.keep && new Date() > date) return token.destroy().then(token => callback({
 			success: false,
-			error:   'error.authenticate.token-outdated'
+			error:  'Token is outdated'
 		}));
 
 		Users.find({ where: {id: token.userId} }).then(user => {
 
 			if(!user) return callback({
 				success: false,
-				error:   'error.authenticate.invalid-token'
+				error:  'User associated with token not found'
 			});
 
 			if(user.status == 8) return callback({
 				success: false,
-				error:   'error.authenticate.banned'
+				error:  'User has been banned'
 			});
 
 			Tokens.update({ updatedAt: null }, { where: {token: token.token}});

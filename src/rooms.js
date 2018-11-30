@@ -14,14 +14,14 @@ module.exports = (io, socket, args, callback) => {
 
 		return callback({
 			success: true,
-			rooms: results
+			rooms:   results
 		});
 	});
 
 	else if(args.type == 'create') Users.find({ where: {id: userId} }).then(user => {
 		Rooms.create({
-			name: args.name ? args.name : 'Unnamed Room',
-			owner: userId,
+			name:   args.name ? args.name : 'Unnamed Room',
+			owner:  userId,
 			status: 1 
 		}).then(room => Access.create({
 			userId: userId,
@@ -61,26 +61,26 @@ module.exports = (io, socket, args, callback) => {
 			await Rooms.find({ where: {id: args.roomId} }).then(room => owner = room.owner);
 
 			for (let i = 0; i < access2.length; i++) await Users.find({ where: {id: access2[i].userId} }).then(user => results.push({
-				id: user.id,
+				id:       user.id,
 				username: user.username,
-				owner: (owner == user.id)
+				owner:    owner == user.id
 			}));
 
 			return callback({
 				success: true,
-				users: results
+				users:   results
 			});
 		});
 	});
 
 	else if(args.type == 'users-promote') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(room => {
 
-		Users.find({ where: {id: args.userId} }).then(user => room.update({
-			owner: user.id
-		}).then(room => io.to('room-' + args.roomId).emit('rooms-users-promote'), {
-			newOwner: user.id,
-			oldOwner: userId
-		}));
+		Users.find({ where: {id: args.userId} }).then(user => {
+			room.update({ owner: user.id }).then(room => io.to('room-' + args.roomId).emit('rooms-users-promote'), {
+				newOwner: user.id,
+				oldOwner: userId
+			});
+		});
 	});
 	
 	else if(args.type == 'users-add') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(async room => {
@@ -100,7 +100,7 @@ module.exports = (io, socket, args, callback) => {
 			if(socketId) io.sockets.connected[socketId].socket.emit('rooms-add', [room]);
 
 			results.push({
-				id: user.id,
+				id:       user.id,
 				username: user.username
 			});
 		}));
@@ -131,19 +131,17 @@ module.exports = (io, socket, args, callback) => {
 
 		if(!access) return callback({
 			success: false,
-			error:   'error.no-access'
+			error:  'User has no access to room'
 		});
 
 		Rooms.findOne({ where: {id: access.roomId, owner: userId} }).then(room => {
 
 			if(room) return callback({
 				success: false,
-				error:   'error.rooms.owner-cant-leave'
+				error:  'Owner can\'t leave own room'
 			});
 
-			access.update({
-				status: 9
-			}).then(access2 => {
+			access.update({ status: 9 }).then(access2 => {
 				Rooms.find({ where: {id: args.roomId} }).then(room => socket.emit('rooms-remove', [room]));
 				socket.leave('room-' + args.roomId)
 				io.to('room-' + access.roomId).emit('rooms-users-remove', [access.userId]);
@@ -153,10 +151,5 @@ module.exports = (io, socket, args, callback) => {
 				});
 			});
 		});
-	});
-
-	else callback({
-		success: false,
-		error:   'error.rooms.type-not-found'
 	});
 }

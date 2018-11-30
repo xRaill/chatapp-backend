@@ -10,16 +10,11 @@ module.exports = (io, socket, args, callback) => {
 		limit: 50
 	}).then(async messages => {
 		
-		if(!messages) return callback({
-			success:  true,
-			messages: false
-		});
-
-		let response = [];
+		let results = [];
 
 		messages.reverse();
 
-		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => response.push({
+		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => results.push({
 			id:        messages[i].id,
 			userId:    user ? user.id : false,
 			roomId:    messages[i].roomId,
@@ -30,8 +25,8 @@ module.exports = (io, socket, args, callback) => {
 		}));
 
 		return callback({
-			success: true,
-			messages: response
+			success:  true,
+			messages: results.length ? results : false
 		});
 	});
 
@@ -39,7 +34,7 @@ module.exports = (io, socket, args, callback) => {
 
 		if(args.message.length < 1 || 255 < args.message.length) return callback({
 			success: false,
-			error:   'error.messages.short'
+			error:  'Message is too long'
 		});
 
 		Messages.create({
@@ -47,11 +42,6 @@ module.exports = (io, socket, args, callback) => {
 			userId:  clientData[socket.id].userid,
 			message: args.message
 		}).then(message => {
-
-			if(!message) return callback({
-				success: false,
-				error:   'error.database.action'
-			});
 
 			io.to('room-' + args.roomId).emit('message-add', [{
 				id:        message.id,

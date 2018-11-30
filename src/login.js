@@ -11,19 +11,19 @@ module.exports = (io, socket, args, callback) => {
 
 		if(!user) return callback({
 			success: false,
-			error:   'error.login.wrong-information'
+			error:  'Wrong login information'
 		});
 
 		bcrypt.compare(args.password, user.password).then(res => {
 
 			if(!res) return callback({
 				success: false,
-				error:   'error.login.wrong-information'
+				error:  'Wrong login information'
 			});
 
 			if(user.status == 8) return callback({
 				success: false,
-				error:   'error.login.access-denied'
+				error:  'User has been banned'
 			});
 
 
