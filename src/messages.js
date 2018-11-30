@@ -2,7 +2,13 @@ module.exports = (io, socket, args, callback) => {
 
 	let Messages = mod.model('messages');
 
-	if(args.type == 'get') Messages.findAll({ where: {roomId: args.roomId} }).then(async messages => {
+	let Op = Sequelize.Op;
+
+	if(args.type == 'get') Messages.findAll({
+		where: {roomId: args.roomId, createdAt: {[Op.lt]: args.before || new Date()} },
+		order: [[ 'createdAt', 'DESC' ]],
+		limit: 50
+	}).then(async messages => {
 		
 		if(!messages) return callback({
 			success:  true,
@@ -11,9 +17,12 @@ module.exports = (io, socket, args, callback) => {
 
 		let response = [];
 
+		messages.reverse();
+
 		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => response.push({
 			id:        messages[i].id,
 			userId:    user ? user.id : false,
+			roomId:    messages[i].roomId,
 			username:  user.status == 1 ? user.username : '[Removed]',
 			message:   messages[i].message,
 			createdAt: messages[i].createdAt,
