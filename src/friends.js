@@ -95,4 +95,39 @@ module.exports = (io, socket, args, callback) => {
 			success: true
 		}));
 	});
+
+	else if(args.type == 'remove') Friends.find({ where: {
+		[Op.or]: [
+			{[Op.and]: [
+				{userId:   userId},
+				{friendId: args.friendId}
+			]},
+			{[Op.and]: [
+				{userId:   args.friendId},
+				{friendId: userId}
+			]},
+		],
+		status:  1
+	} }).then(friend => {
+
+		if(!friend) return callback({
+			success: false,
+			error:  'User is not friend'
+		});
+
+		friend.update({
+			status: 9
+		}).then(friend => {
+
+			let socketId = Object.entries(clientData).find(a => a[1].userid == args.friendId);
+			if(socketId) io.sockets.connected[socketId].socket.emit('friends-remove', {
+				id: args.friendId
+			});
+
+			return callback({
+				success: true
+			});
+
+		});
+	});
 }
