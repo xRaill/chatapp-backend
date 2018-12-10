@@ -7,7 +7,7 @@ module.exports = (io, socket, args, callback) => {
 	if(args.type == 'get') Messages.findAll({
 		where: {roomId: args.roomId, createdAt: {[Op.lt]: args.before || new Date()} },
 		order: [[ 'createdAt', 'DESC' ]],
-		limit: 50
+		limit: 30
 	}).then(async messages => {
 		
 		let results = [];
