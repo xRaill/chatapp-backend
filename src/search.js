@@ -38,6 +38,7 @@ module.exports = (io, socket, args, callback)=> {
 			}).then(friends => results.push({
 				id:       users[i].id,
 				username: users[i].username,
+				self:     users[i].id == userId ? true : false,
 				friends:  friends ? (friends.status === 1 ? true : false) : false,
 				request:  friends ? (friends.status === 0 ? true : false) : false
 			}));
