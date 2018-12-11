@@ -32,8 +32,9 @@ module.exports = (io, socket, args, callback)=> {
 						{[Op.and]: [
 							{userId:   users[i].id},
 							{friendId: userId}
-						]},
-					]
+						]}
+					],
+					status: {[Op.or]: [0,1]}
 				} 
 			}).then(friends => results.push({
 				id:       users[i].id,
