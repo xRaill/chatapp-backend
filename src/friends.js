@@ -53,7 +53,7 @@ module.exports = (io, socket, args, callback) => {
 
 		Users.find({ where: {id: args.friendId} }).then(user => Friends.create({
 			userId:   user.id,
-			friendId: friend.id,
+			friendId: args.friendId,
 			status:   0
 		}).then(friend => {
 
