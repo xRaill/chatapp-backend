@@ -22,7 +22,7 @@ module.exports = (io, socket, args, callback) => {
 			}));
 			else await Users.find({ where: {id: friends[i].userId} }).then(user => results.push({
 				id:       user.id,
-				request:  friends[i].status ? true : false,
+				request:  friends[i].status === 0 ? true : false,
 				username: user.username
 			}));
 		}
