@@ -52,8 +52,8 @@ module.exports = (io, socket, args, callback) => {
 		});
 
 		Users.find({ where: {id: args.friendId} }).then(user => Friends.create({
-			userId:   user.id,
-			friendId: args.friendId,
+			userId:   userId,
+			friendId: user.id,
 			status:   0
 		}).then(friend => {
 
