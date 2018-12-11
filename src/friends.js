@@ -57,8 +57,12 @@ module.exports = (io, socket, args, callback) => {
 			status:   0
 		}).then(friend => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
-			if(socketId) io.sockets.connected[socketId].socket.emit('friends-request', user);
+			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id)[0];
+			if(socketId) io.sockets.connected[socketId].emit('friends-request', {
+				id:       userId,
+				username: clientData[socket.id].username,
+				request:  true
+			});
 
 			return callback({
 				success: true
