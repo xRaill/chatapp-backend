@@ -68,7 +68,7 @@ module.exports = (io, socket, args, callback) => {
 
 			return callback({
 				success: true,
-				owner:   userId == room.owner,
+				owner:   userId == owner,
 				users:   results
 			});
 		});
