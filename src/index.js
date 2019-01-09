@@ -16,7 +16,12 @@ module.exports.model = (model) => {
 module.exports.action = (action, a, b, c, d) => {
 	let res;
 
-	console.log('Requesting action: ' + action)
+	/*  --- DBUGGING ---  */
+	let type = false;
+	process.stdout.write('Requesting action: ' + action);
+	if(c instanceof Object) if(c.type) process.stdout.write('\ttype: ' + c.type);
+	process.stdout.write('\n');
+	/*  ----------------- */
 
 	let file = action + '.js';
 
