@@ -26,24 +26,4 @@ let User = sequelize.define('user', {
 	freezeTableName: true
 });
 
-User.hasOne(mod.model('friends'), {
-	as: 'user'
-});
-
-User.belongsToMany(User, {
-	through: mod.model('friends'),
-	as: 'friend',
-	foreignKey: 'friendId'
-});
-
-User.belongsToMany(User, {
-	through: mod.model('friends'),
-	as: 'friend2',
-	foreignKey: 'userId'
-});
-
-// User.hasMany(mod.model('tokens'));
-// User.belongsTo(mod.model('tokens'), {
-// });
-
 module.exports = User;

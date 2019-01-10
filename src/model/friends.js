@@ -20,4 +20,11 @@ let Friends = sequelize.define('friends', {
 	freezeTableNames: true
 });
 
+Friends.belongsTo(mod.model('user'));
+
+Friends.belongsTo(mod.model('user'), {
+	foreignKey: 'friendId',
+	as: 'friend'
+});
+
 module.exports = Friends;
