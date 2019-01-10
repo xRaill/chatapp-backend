@@ -33,6 +33,22 @@ module.exports = (io, socket, args, callback) => {
 		});
 	});
 
+	else if(args.type == 'get-requests') Friends.findAll({ where: {friendId: userId, status: 0} }).then(async friends => {
+
+		let results = [];
+
+		for (let i = 0; i < friends.length; i++) await friends[i].getUser().then(user => results.push({
+			id:       user.id,
+			username: user.username
+		}));
+
+		return callback({
+			success: true,
+			friends: results,
+			test: friends
+		});
+	});
+
 	else if(args.type == 'request') Friends.find({
 		where: {
 			userId:   userId,
