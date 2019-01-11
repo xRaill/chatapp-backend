@@ -8,6 +8,11 @@ module.exports = (io, socket, args, callback)=> {
 
 	if(args.type == 'users') {
 
+		if(!args.search) return callback({
+			success: false,
+			error:  'No search value provided'
+		});
+
 		if(args.search.length <= 3) return callback({
 			success: false,
 			error:  'Search must be longer than 3'
