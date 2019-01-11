@@ -15,7 +15,7 @@ module.exports = (callback) => {
 			host: settings.dbhost,
 			dialect: 'mysql',
 			operatorsAliases: false,
-			logging: settings.logging,
+			logging: settings.dbLogging,
 
 			pool: {
 				max: 5,
