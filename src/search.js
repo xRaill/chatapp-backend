@@ -46,7 +46,7 @@ module.exports = (io, socket, args, callback)=> {
 				username: users[i].username,
 				self:     users[i].id == userId ? true : false,
 				friends:  friends ? (friends.status === 1 ? true : false) : false,
-				request:  friends ? (friends.status === 0 ? true : false) : false
+				request:  friends ? (friends.status === 0 ? (friends.id == userId ? true : false) : false) : false
 			}));
 
 			return callback({
