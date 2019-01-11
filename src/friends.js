@@ -12,24 +12,27 @@ module.exports = (io, socket, args, callback) => {
 			status:  {[Op.or]: [0, 1]}
 		}
 	}).then(async friends => {
-		let results = [];
+		let requests = 0;
+		let results  = [];
 
 		for (let i = 0; i < friends.length; i++) {
-			if(friends[i].userId == userId) await Users.find({ where: {id: friends[i].friendId} }).then(user => results.push({
+			if(friends[i].userId == userId && friends[i].status === 1)
+				await Users.find({ where: {id: friends[i].friendId} }).then(user => results.push({
 				id:       user.id,
-				request:  false,
 				username: user.username
 			}));
-			else await Users.find({ where: {id: friends[i].userId} }).then(user => results.push({
+			else if(friends[i].friendId == userId && friends[i].status === 1)
+				await Users.find({ where: {id: friends[i].userId} }).then( user => results.push({
 				id:       user.id,
-				request:  friends[i].status === 0 ? true : false,
 				username: user.username
 			}));
+			else if(friends[i].friendId == userId && friends[i].status === 0) requests++;
 		}
 
 		return callback({
-			success: true,
-			friends: results.length ? results : false
+			success:  true,
+			friends:  results.length ? results : false,
+			requests: requests
 		});
 	});
 
