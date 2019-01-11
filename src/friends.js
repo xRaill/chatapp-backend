@@ -95,8 +95,8 @@ module.exports = (io, socket, args, callback) => {
 
 		friend.update({ status: 1 }).then(friend => Users.find({ where: {id: friend.friendId} }).then(user => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == friend.userId);
-			if(socketId) io.sockets.connected[socketId].socket.emit('friends-accept', user);
+			let socketId = Object.entries(clientData).find(a => a[1].userid == friend.userId)[0];
+			if(socketId) io.sockets.connected[socketId].emit('friends-accept', user);
 
 			return callback({
 				success: true
