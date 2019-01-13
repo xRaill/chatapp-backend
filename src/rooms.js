@@ -54,6 +54,11 @@ module.exports = (io, socket, args, callback) => {
 
 	else if(args.type == 'users-get') Access.find({ where: {roomId: args.roomId, userId: userId, status: 1} }).then(access => {
 
+		if(!access) return callback({
+			success: false,
+			error:  'User has no access to room'
+		});
+
 		Access.findAll({ where: {roomId: args.roomId, status: 1} }).then(async access2 => {
 			let results = [];
 			let owner;
