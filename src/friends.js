@@ -141,8 +141,8 @@ module.exports = (io, socket, args, callback) => {
 			status: 9
 		}).then(friend => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == args.friendId);
-			if(socketId) io.sockets.connected[socketId].socket.emit('friends-remove', {
+			let socketId = Object.entries(clientData).find(a => a[1].userid == args.friendId)[0];
+			if(socketId) io.sockets.connected[socketId].emit('friends-remove', {
 				id: args.friendId
 			});
 
