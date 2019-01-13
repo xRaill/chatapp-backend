@@ -31,7 +31,8 @@ module.exports = (io, socket, args, callback) => {
 
 		return callback({
 			success:  true,
-			friends:  results.length ? results : false
+			friends:  results.length ? results : false,
+			requests: requests
 		});
 	});
 
@@ -46,8 +47,7 @@ module.exports = (io, socket, args, callback) => {
 
 		return callback({
 			success: true,
-			friends: results,
-			test: friends
+			friends: results
 		});
 	});
 
