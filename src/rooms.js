@@ -84,9 +84,9 @@ module.exports = (io, socket, args, callback) => {
 		Users.find({ where: {id: args.userId} }).then(user => {
 			room.update({ owner: user.id }).then(room => {
 
-				let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+				let socketId = Object.entries(clientData).find(a => a[1].userid == user.id)[0];
 		
-				if(socketId) io.sockets.connected[socketId].socket.emit('rooms-promoted', {
+				if(socketId) io.sockets.connected[socketId].emit('rooms-promoted', {
 					roomName: room.name
 				});
 
@@ -108,10 +108,10 @@ module.exports = (io, socket, args, callback) => {
 			status: 1
 		}).then(access => Users.find({ where: {id: args.userId} }).then(user => {
 			// Get socketid
-			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id)[0];
 
-			if(socketId) io.sockets.connected[socketId].socket.emit('rooms-add', [room]);
-			if(socketId) io.sockets.connected[socketId].socket.join('room-' + room.id);
+			if(socketId) io.sockets.connected[socketId].emit('rooms-add', [room]);
+			if(socketId) io.sockets.connected[socketId].join('room-' + room.id);
 
 			results.push({
 				id:       user.id,
@@ -125,17 +125,28 @@ module.exports = (io, socket, args, callback) => {
 	});
 
 	else if(args.type == 'users-remove') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(async room => {
+		
+		if(!args.userId) return callback({
+			success: false,
+			error:  'No userId given'
+		});
+
+		if(!room) return callback({
+			success: false,
+			error:  'User is not owner of room'
+		});
+
 		let results = [];
 
 		if(!Array.isArray(args.userId)) args.userId = [args.userId];
 
-		for (let i = 0; i < args.userId.length; i++) await Access.find(
-			{where: {roomId: args.roomId, userId: args.userId[i]}
+		for (let i = 0; i < args.userId.length; i++) await Access.findOne({
+			where: {roomId: room.id, userId: args.userId[i], status: 1}
 		}).then(access => access.update({status: 9}).then(access2 => {
-			let socketId = Object.entries(clientData).find(a => a[1].userid == access.userId);
+			let socketId = Object.entries(clientData).find(a => a[1].userid == access.userId)[0];
 	
-			if(socketId) io.sockets.connected[socketId].socket.leave('room-' + access.roomId);
-			if(socketId) io.sockets.connected[socketId].socket.emit('rooms-remove', [room]);
+			if(socketId) io.sockets.connected[socketId].leave('room-' + access.roomId);
+			if(socketId) io.sockets.connected[socketId].emit('rooms-remove', [room]);
 
 			results.push(access2.userId);
 		}));
