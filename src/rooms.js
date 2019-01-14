@@ -1,16 +1,22 @@
 module.exports = (io, socket, args, callback) => {
 
-	let Users  = mod.model('user');
-	let Access = mod.model('access');
-	let Rooms  = mod.model('room');
-
+	let Users    = mod.model('user');
+	let Access   = mod.model('access');
+	let Rooms    = mod.model('room');
+	let Messages = mod.model('messages'); 
 
 	let userId = clientData[socket.id].userid;
 
 	if(args.type == 'get') Access.findAll({ where: {userId: userId, status: 1}}).then(async access => {
 		let results = [];
 
-		for (let i = 0; i < access.length; i++) await Rooms.find({ where: {id: access[i].roomId} }).then(room => results.push(room));
+		for (let i = 0; i < access.length; i++) await Rooms.find({ where: {id: access[i].roomId} }).then(room => Messages.findOne({
+			where: {roomId: room.id}
+		}).then(message => Users.findOne({ where: {id: message ? message.userId : 0} }).then(user =>  results.push({
+			id:      room.id,
+			name:    room.name,
+			lastMsg: message && user ? user.username + ': ' + message.message : false
+		}))));
 
 		return callback({
 			success: true,
