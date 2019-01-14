@@ -38,17 +38,17 @@ module.exports = (io, socket, args, callback) => {
 		}));
 	});
 
-	else if(args.type == 'remove') Users.find({ where: {id: userId}}).then(async user => {
-		if(!Array.isArray(args.roomId)) args.roomId = [args.roomId];
+	else if(args.type == 'remove') Users.find({ where: {id: userId} }).then(user => {
 
-		for (let i = 0; i < args.roomId.length; i++) await Rooms.find(
-			{where: {id: args.roomId[i], owner: userId}
-		}).then(room => room.update({status: 9}).then(room => {
+		Rooms.find({ where: {id: args.roomId, owner: userId} }).then(room => room.update({status: 9}).then(room => {
 			let clients = io.sockets.clients('room-' + room.id)
 
-			io.to('room-' + args.roomId[i]).emit('rooms-remove', [room]);
+			io.to('room-' + args.roomId).emit('rooms-remove', {
+				id:   room.id,
+				name: room.name
+			});
 
-			for (let j = 0; j < clients.length; j++) clients[j].leave('room-' + room.id);
+			for (let i = 0; i < clients.length; i++) clients[i].leave('room-' + room.id);
 		}));
 	});
 
