@@ -11,12 +11,20 @@ module.exports = (io, socket, args, callback) => {
 		let results = [];
 
 		for (let i = 0; i < access.length; i++) await Rooms.find({ where: {id: access[i].roomId} }).then(room => Messages.findOne({
-			where: {roomId: room.id}
-		}).then(message => Users.findOne({ where: {id: message ? message.userId : 0} }).then(user =>  results.push({
-			id:      room.id,
-			name:    room.name,
-			lastMsg: message && user ? user.username + ': ' + message.message : false
-		}))));
+			where: {roomId: room.id},
+			order: [['createdAt', 'DESC']]
+		}).then(async message => {
+			let username;
+
+			if(message) if(message.userId == userId) username = 'You';
+			else await Users.findOne({ where: {id: message ? message.userId : 0} }).then(user => username = user.username);
+
+			return results.push({
+				id:      room.id,
+				name:    room.name,
+				lastMsg: message ? username + ': ' + message.message : false
+			});
+		}));
 
 		return callback({
 			success: true,
