@@ -1,4 +1,5 @@
 const http = require('http');
+const fs = require('fs');
 
 global.mod        = require('./src/index.js');
 global.Sequelize  = require('sequelize');
@@ -18,7 +19,7 @@ mod.action('database', () => {
 	io     = require('socket.io').listen(app);
 	socket = io.path('/');
 
-	app.listen(8080, () => console.log('Server active on *:8080', "\x1b[0m"));
+	fs.readFile('settings.json', 'utf8', (err, data) => app.listen(JSON.parse(data).port, () => console.log('Server successfully started')));
 
 	io.on('connection', (socket) => {
 		console.log(socket.id +' connected');

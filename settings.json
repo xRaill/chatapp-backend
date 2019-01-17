@@ -4,5 +4,7 @@
 	"dbpass": null,
 	"dbname": "chatapp",
 
+	"port": 8080,
+
 	"dbLogging": null
 }
