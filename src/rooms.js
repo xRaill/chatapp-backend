@@ -7,7 +7,10 @@ module.exports = (io, socket, args, callback) => {
 
 	let userId = clientData[socket.id].userid;
 
-	if(args.type == 'get') Access.findAll({ where: {userId: userId, status: 1}}).then(async access => {
+	if(args.type == 'get') Access.findAll({ where: Object.assign(
+		{userId: userId, status: 1},
+		args.roomId ? {roomId: args.roomId} : ''
+	)}).then(async access => {
 		let results = [];
 
 		for (let i = 0; i < access.length; i++) await Rooms.find({ where: {id: access[i].roomId} }).then(room => Messages.findOne({
@@ -19,11 +22,14 @@ module.exports = (io, socket, args, callback) => {
 			if(message) if(message.userId == userId) username = 'You';
 			else await Users.findOne({ where: {id: message ? message.userId : 0} }).then(user => username = user.username);
 
-			return results.push({
+			return results.push(Object.assign({
 				id:      room.id,
 				name:    room.name,
-				lastMsg: message ? username + ': ' + message.message : false
-			});
+			}, !args.roomId ? {lastMsg: message ? username + ': ' + message.message : false} : ''));
+		}));
+
+		if(args.roomId) callback(Object.assign(results[0], {
+			success: true
 		}));
 
 		return callback({
