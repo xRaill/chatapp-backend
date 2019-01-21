@@ -1,6 +1,7 @@
 module.exports = (io, socket, args, callback)=> {
 
 	let Friends = mod.model('friends'); 
+	let Access  = mod.model('access'); 
 	let Users   = mod.model('user');
 
 	let userId = clientData[socket.id].userid; 
@@ -56,5 +57,65 @@ module.exports = (io, socket, args, callback)=> {
 		});
 
 	}
+
+	else if(args.type == 'friends') Friends.findAll({
+		where: {
+			[Op.or]: [
+				{userId: userId},
+				{friendId: userId}
+			],
+			status: 1
+		}
+	}).then(async friends => {
+
+		if(!args.roomId) return callback({
+			success: false,
+			error:  'No roomId given'
+		});
+
+		let results = [];
+
+		for (let i = 0; i < friends.length; i++) {
+			if(friends[i].userId == userId) await Users.findOne({
+				where: {
+					id: friends[i].friendId,
+					username: { [Op.like]: '%' + args.search + '%' }
+				} 
+			}).then(async user => { if(user) await Access.findOne({
+				where: {
+					userId: user.id,
+					roomId: args.roomId,
+					status: 1
+				}
+			}).then(async access => await results.push({
+				id:       user.id,
+				username: user.username,
+				inGroup:  access ? true : false
+			}))});
+
+			else await Users.findOne({
+				where: {
+					id: friends[i].userId,
+					username: { [Op.like]: '%' + args.search + '%' }
+				}
+			}).then(async user => { if(user) await Access.findOne({
+				where: {
+					userId: user.id,
+					roomId: args.roomId,
+					status: 1
+				}
+			}).then(async access => await results.push({
+				id:       user.id,
+				username: user.username,
+				inGroup:  access ? true : false
+			}))});
+		}
+
+		return callback({
+			success: true,
+			friends: results
+		});
+
+	});
 
 }
