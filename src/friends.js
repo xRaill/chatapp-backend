@@ -75,8 +75,8 @@ module.exports = (io, socket, args, callback) => {
 			status:   0
 		}).then(friend => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id)[0];
-			if(socketId) io.sockets.connected[socketId].emit('friends-request', {
+			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+			if(socketId) io.sockets.connected[socketId[0]].emit('friends-request', {
 				id:       userId,
 				username: clientData[socket.id].username,
 				request:  true
@@ -97,8 +97,8 @@ module.exports = (io, socket, args, callback) => {
 
 		friend.update({ status: 1 }).then(friend => Users.find({ where: {id: friend.friendId} }).then(user => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == friend.userId)[0];
-			if(socketId) io.sockets.connected[socketId].emit('friends-accept', user);
+			let socketId = Object.entries(clientData).find(a => a[1].userid == friend.userId);
+			if(socketId) io.sockets.connected[socketId[0]].emit('friends-accept', user);
 
 			return callback({
 				success: true
@@ -141,8 +141,8 @@ module.exports = (io, socket, args, callback) => {
 			status: 9
 		}).then(friend => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == args.friendId)[0];
-			if(socketId) io.sockets.connected[socketId].emit('friends-remove', {
+			let socketId = Object.entries(clientData).find(a => a[1].userid == args.friendId);
+			if(socketId) io.sockets.connected[socketId[0]].emit('friends-remove', {
 				id: args.friendId
 			});
 

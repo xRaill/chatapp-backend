@@ -98,9 +98,8 @@ module.exports = (io, socket, args, callback) => {
 		Users.find({ where: {id: args.userId} }).then(user => {
 			room.update({ owner: user.id }).then(room => {
 
-				let socketId = Object.entries(clientData).find(a => a[1].userid == user.id)[0];
-		
-				if(socketId) io.sockets.connected[socketId].emit('rooms-promoted', {
+				let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+				if(socketId) io.sockets.connected[socketId[0]].emit('rooms-promoted', {
 					roomName: room.name
 				});
 
@@ -122,10 +121,10 @@ module.exports = (io, socket, args, callback) => {
 			status: 1
 		}).then(access => Users.find({ where: {id: args.userId} }).then(user => {
 			// Get socketid
-			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id)[0];
+			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
 
-			if(socketId) io.sockets.connected[socketId].emit('rooms-add', [room]);
-			if(socketId) io.sockets.connected[socketId].join('room-' + room.id);
+			if(socketId) io.sockets.connected[socketId[0]].emit('rooms-add', [room]);
+			if(socketId) io.sockets.connected[socketId[0]].join('room-' + room.id);
 
 			results.push({
 				id:       user.id,
@@ -157,10 +156,10 @@ module.exports = (io, socket, args, callback) => {
 		for (let i = 0; i < args.userId.length; i++) await Access.findOne({
 			where: {roomId: room.id, userId: args.userId[i], status: 1}
 		}).then(access => access.update({status: 9}).then(access2 => {
-			let socketId = Object.entries(clientData).find(a => a[1].userid == access.userId)[0];
+			let socketId = Object.entries(clientData).find(a => a[1].userid == access.userId);
 	
-			if(socketId) io.sockets.connected[socketId].leave('room-' + access.roomId);
-			if(socketId) io.sockets.connected[socketId].emit('rooms-remove', [room]);
+			if(socketId) io.sockets.connected[socketId[0]].leave('room-' + access.roomId);
+			if(socketId) io.sockets.connected[socketId[0]].emit('rooms-remove', [room]);
 
 			results.push(access2.userId);
 		}));
