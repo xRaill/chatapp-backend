@@ -1,3 +1,4 @@
+const middleware = require('socketio-wildcard')();
 const http = require('http');
 const fs = require('fs');
 
@@ -13,11 +14,12 @@ function handler(req, res) {
 	res.end('Server is active!');
 }
 
-mod.action('database', () => {
-
+mod.action(io, socket, { type: 'database' }, () => {
 	app    = http.createServer(handler);
 	io     = require('socket.io').listen(app);
 	socket = io.path('/');
+
+	io.use(middleware);
 
 	fs.readFile('settings.json', 'utf8', (err, data) => app.listen(JSON.parse(data).port, () => console.log('Server successfully started')));
 
@@ -28,10 +30,18 @@ mod.action('database', () => {
 			username: 'Anonymous'
 		};
 		socket.emit('connected');
-		socket.on('action', (type, args = {}, callback = () => {}) => mod.action(type, io, socket, args, callback));
-		socket.on('toastall', () => io.emit('toast'));
-		socket.on('clientdata', () => socket.emit('test', clientData));
-		
+
+		socket.on('*', (req) => {
+			let callback = () => {};
+			let data = req.data || {};
+
+			if(!(data[0] instanceof Object)) return;
+
+			if(data[1] instanceof Function) callback = data[1];
+
+			mod.action(io, socket, data[0], callback);
+		});
+
 		socket.on('disconnect', () => {
 			let Tokens = mod.model('tokens');
 
@@ -39,6 +49,7 @@ mod.action('database', () => {
 
 			delete clientData[socket.id];
 		});
+
 	});
 
 });

@@ -13,25 +13,25 @@ module.exports.model = (model) => {
 	return res;
 }
 
-module.exports.action = (action, a, b, c, d) => {
+module.exports.action = (io, socket, data, callback) => {
 	let res;
 
-	/*  --- DBUGGING ---  */
-	let type = false;
-	process.stdout.write('Requesting action: ' + action);
-	if(c instanceof Object) if(c.type) process.stdout.write('\ttype: ' + c.type);
-	process.stdout.write('\n');
-	/*  ----------------- */
+	// console.log(data);
+	if(data) console.log('Request type: ' + data.type);
 
-	let file = action + '.js';
+	let file = data.type.split('.')[0] + '.js';
+	
+	data.type = data.type.split('.').pop();
 
 	if(fs.existsSync('./src/' + file)) {
 		try {
 			res = require('./' + file);
 		} catch(err) {
-			console.log("\x1b[41m", "'"+ action +"' action error:", err, "\x1b[0m");
+			console.log("\x1b[41m", "'"+ data.type +"' request error:", err, "\x1b[0m");
 			process.exit();
 		}
-		return res(a, b, c, d);
-	} else return () => console.log("\x1b[41m", "Action '"+ action +"' requested but does not exist", "\x1b[0m");
+
+
+		return res(io, socket, data, callback);
+	} else return () => console.log("\x1b[41m", data.type +" requested but does not exist", "\x1b[0m");
 }

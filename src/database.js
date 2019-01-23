@@ -1,6 +1,6 @@
 let fs = require('fs');
 
-module.exports = (callback) => {
+module.exports = (io, socker, data, callback) => {
 
 	fs.readFile('settings.json', 'utf8', (err, data) => {
 
