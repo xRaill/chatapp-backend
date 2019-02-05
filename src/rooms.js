@@ -23,8 +23,8 @@ module.exports = (io, socket, args, callback) => {
 			else await Users.findOne({ where: {id: message ? message.userId : 0} }).then(user => username = user.username);
 
 			return results.push(Object.assign({
-				id:      room.id,
-				name:    room.name,
+				id:   room.id,
+				name: room.name,
 			}, !args.roomId ? {lastMsg: message ? username + ': ' + message.message : false} : ''));
 		}));
 
@@ -36,6 +36,28 @@ module.exports = (io, socket, args, callback) => {
 			success: true,
 			rooms:   results
 		});
+	});
+
+	else if(args.type == 'read') Access.find({ where: {userId: userId, roomId: args.roomId, status: 1} }).then(access => {
+
+		if(!args.roomId) return callback({
+			success: false,
+			error:  'roomId not given'
+		});
+
+		if(args.date) if(access.readAt > args.date) return callback({
+			success: false,
+			error:  'Date cannot be greater than previous date'
+		});
+
+		access.update({
+			readAt: args.date || new Date()
+		}).then(access => {
+			return callback({
+				success: true
+			});
+		});
+
 	});
 
 	else if(args.type == 'create') Users.find({ where: {id: userId} }).then(user => {

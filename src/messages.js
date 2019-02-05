@@ -1,6 +1,7 @@
 module.exports = (io, socket, args, callback) => {
 
 	let Messages = mod.model('messages');
+	let Access   = mod.model('access');
 
 	let Op = Sequelize.Op;
 
@@ -9,20 +10,26 @@ module.exports = (io, socket, args, callback) => {
 		order: [[ 'createdAt', 'DESC' ]],
 		limit: 50
 	}).then(async messages => {
-		
 		let results = [];
 
 		messages.reverse();
 
-		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => results.push({
+		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => Access.find({
+			where: {
+				userId: clientData[socket.id].userid,
+				roomId: args.roomId,
+				status: 1
+			}
+		}).then(access => results.push({
 			id:        messages[i].id,
 			userId:    user ? user.id : false,
 			roomId:    messages[i].roomId,
 			username:  user.status == 1 ? user.username : '[Removed]',
 			message:   messages[i].message,
+			read:      access.readAt > messages[i].createdAt,
 			createdAt: messages[i].createdAt,
 			updatedAt: messages[i].updatedAt
-		}));
+		})));
 
 		return callback({
 			success:  true,

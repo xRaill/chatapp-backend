@@ -15,6 +15,11 @@ let Access = sequelize.define('access', {
 	status: {
 		type: Sequelize.INTEGER,
 		allowNull: false
+	},
+	readAt: {
+		type: Sequelize.DATE,
+		defaultValue: new Date(),
+		allowNull: false
 	}
 }, {
 	freezeTableName: true
