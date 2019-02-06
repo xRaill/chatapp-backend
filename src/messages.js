@@ -39,6 +39,11 @@ module.exports = (io, socket, args, callback) => {
 
 	else if(args.type == 'send') {
 
+		if(!args.roomId) return callback({
+			success: false,
+			error:  'roomId not given'
+		});
+
 		if(args.message.length < 1 || 255 < args.message.length) return callback({
 			success: false,
 			error:  'Message is too long'
@@ -53,7 +58,10 @@ module.exports = (io, socket, args, callback) => {
 			io.to('room-' + args.roomId).emit('messages-add', [{
 				id:        message.id,
 				userId:    message.userId,
+				roomId:    args.roomId,
+				username:  clientData[socket.id].username,
 				message:   message.message,
+				read:      false,
 				createdAt: message.createdAt,
 				updatedAt: message.updatedAt
 			}]);
