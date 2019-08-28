@@ -4,7 +4,7 @@ module.exports = (io, socket, args, callback) => {
 	let Users  = mod.model('user');
 	let Access = mod.model('access');
 
-	Tokens.find({ where: {token: args.token, status: 1} }).then(token => {
+	Tokens.findOne({ where: {token: args.token, status: 1} }).then(token => {
 
 		if(!token) return callback({
 			success: false,
@@ -19,7 +19,7 @@ module.exports = (io, socket, args, callback) => {
 			error:  'Token is outdated'
 		}));
 
-		Users.find({ where: {id: token.userId} }).then(user => {
+		Users.findOne({ where: {id: token.userId} }).then(user => {
 
 			if(!user) return callback({
 				success: false,

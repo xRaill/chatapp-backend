@@ -13,7 +13,7 @@ module.exports = (io, socket, args, callback) => {
 	)}).then(async access => {
 		let results = [];
 
-		for (let i = 0; i < access.length; i++) await Rooms.find({ where: {id: access[i].roomId} }).then(room => Messages.findOne({
+		for (let i = 0; i < access.length; i++) await Rooms.findOne({ where: {id: access[i].roomId} }).then(room => Messages.findOne({
 			where: {roomId: room.id},
 			order: [['createdAt', 'DESC']]
 		}).then(async message => {
@@ -38,7 +38,7 @@ module.exports = (io, socket, args, callback) => {
 		});
 	});
 
-	else if(args.type == 'read') Access.find({ where: {userId: userId, roomId: args.roomId, status: 1} }).then(access => {
+	else if(args.type == 'read') Access.findOne({ where: {userId: userId, roomId: args.roomId, status: 1} }).then(access => {
 
 		if(!args.roomId) return callback({
 			success: false,
@@ -60,7 +60,7 @@ module.exports = (io, socket, args, callback) => {
 
 	});
 
-	else if(args.type == 'create') Users.find({ where: {id: userId} }).then(user => {
+	else if(args.type == 'create') Users.findOne({ where: {id: userId} }).then(user => {
 		Rooms.create({
 			name:   args.name ? args.name : 'Unnamed Room',
 			owner:  userId,
@@ -80,9 +80,9 @@ module.exports = (io, socket, args, callback) => {
 		}));
 	});
 
-	else if(args.type == 'remove') Users.find({ where: {id: userId} }).then(user => {
+	else if(args.type == 'remove') Users.findOne({ where: {id: userId} }).then(user => {
 
-		Rooms.find({ where: {id: args.roomId, owner: userId} }).then(room => room.update({status: 9}).then(room => {
+		Rooms.findOne({ where: {id: args.roomId, owner: userId} }).then(room => room.update({status: 9}).then(room => {
 			let clients = io.sockets.clients('room-' + room.id)
 
 			io.to('room-' + args.roomId).emit('rooms-remove', {
@@ -94,7 +94,7 @@ module.exports = (io, socket, args, callback) => {
 		}));
 	});
 
-	else if(args.type == 'users-get') Access.find({ where: {roomId: args.roomId, userId: userId, status: 1} }).then(access => {
+	else if(args.type == 'users-get') Access.findOne({ where: {roomId: args.roomId, userId: userId, status: 1} }).then(access => {
 
 		if(!access) return callback({
 			success: false,
@@ -105,9 +105,9 @@ module.exports = (io, socket, args, callback) => {
 			let results = [];
 			let owner;
 
-			await Rooms.find({ where: {id: args.roomId} }).then(room => owner = room.owner);
+			await Rooms.findOne({ where: {id: args.roomId} }).then(room => owner = room.owner);
 
-			for (let i = 0; i < access2.length; i++) await Users.find({ where: {id: access2[i].userId} }).then(user => results.push({
+			for (let i = 0; i < access2.length; i++) await Users.findOne({ where: {id: access2[i].userId} }).then(user => results.push({
 				id:       user.id,
 				username: user.username,
 				owner:    owner == user.id
@@ -121,12 +121,12 @@ module.exports = (io, socket, args, callback) => {
 		});
 	});
 
-	else if(args.type == 'users-promote') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(room => {
+	else if(args.type == 'users-promote') Rooms.findOne({ where: {id: args.roomId, owner: userId} }).then(room => {
 
-		Users.find({ where: {id: args.userId} }).then(user => {
+		Users.findOne({ where: {id: args.userId} }).then(user => {
 			room.update({ owner: user.id }).then(room => {
 
-				let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+				let socketId = Object.entries(clientData).findOne(a => a[1].userid == user.id);
 				if(socketId) io.sockets.connected[socketId[0]].emit('rooms-promoted', {
 					roomName: room.name
 				});
@@ -138,7 +138,7 @@ module.exports = (io, socket, args, callback) => {
 		});
 	});
 	
-	else if(args.type == 'users-add') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(async room => {
+	else if(args.type == 'users-add') Rooms.findOne({ where: {id: args.roomId, owner: userId} }).then(async room => {
 		let results = [];
 
 		if(!Array.isArray(args.userId)) args.userId = [args.userId];
@@ -147,9 +147,9 @@ module.exports = (io, socket, args, callback) => {
 			userId: args.userId,
 			roomId: room.id,
 			status: 1
-		}).then(access => Users.find({ where: {id: args.userId} }).then(user => {
+		}).then(access => Users.findOne({ where: {id: args.userId} }).then(user => {
 			// Get socketid
-			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+			let socketId = Object.entries(clientData).findOne(a => a[1].userid == user.id);
 
 			if(socketId) io.sockets.connected[socketId[0]].emit('rooms-add', [room]);
 			if(socketId) io.sockets.connected[socketId[0]].join('room-' + room.id);
@@ -165,7 +165,7 @@ module.exports = (io, socket, args, callback) => {
 		})
 	});
 
-	else if(args.type == 'users-remove') Rooms.find({ where: {id: args.roomId, owner: userId} }).then(async room => {
+	else if(args.type == 'users-remove') Rooms.findOne({ where: {id: args.roomId, owner: userId} }).then(async room => {
 		
 		if(!args.userId) return callback({
 			success: false,
@@ -184,7 +184,7 @@ module.exports = (io, socket, args, callback) => {
 		for (let i = 0; i < args.userId.length; i++) await Access.findOne({
 			where: {roomId: room.id, userId: args.userId[i], status: 1}
 		}).then(access => access.update({status: 9}).then(access2 => {
-			let socketId = Object.entries(clientData).find(a => a[1].userid == access.userId);
+			let socketId = Object.entries(clientData).findOne(a => a[1].userid == access.userId);
 	
 			if(socketId) io.sockets.connected[socketId[0]].leave('room-' + access.roomId);
 			if(socketId) io.sockets.connected[socketId[0]].emit('rooms-remove', [room]);
@@ -212,7 +212,7 @@ module.exports = (io, socket, args, callback) => {
 			});
 
 			access.update({ status: 9 }).then(access2 => {
-				Rooms.find({ where: {id: args.roomId} }).then(room => socket.emit('rooms-remove', [room]));
+				Rooms.findOne({ where: {id: args.roomId} }).then(room => socket.emit('rooms-remove', [room]));
 				socket.leave('room-' + args.roomId)
 
 				return callback({

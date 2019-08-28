@@ -28,7 +28,7 @@ module.exports = (io, socket, args, callback)=> {
 		}).then(async users => {
 			let results = [];
 
-			for (let i = 0; i < users.length; i++) await Friends.find({
+			for (let i = 0; i < users.length; i++) await Friends.findOne({
 				where: {
 					[Op.or]: [
 						{[Op.and]: [

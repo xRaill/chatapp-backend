@@ -17,12 +17,12 @@ module.exports = (io, socket, args, callback) => {
 
 		for (let i = 0; i < friends.length; i++) {
 			if(friends[i].userId == userId && friends[i].status === 1)
-				await Users.find({ where: {id: friends[i].friendId} }).then(user => results.push({
+				await Users.findOne({ where: {id: friends[i].friendId} }).then(user => results.push({
 				id:       user.id,
 				username: user.username
 			}));
 			else if(friends[i].friendId == userId && friends[i].status === 1)
-				await Users.find({ where: {id: friends[i].userId} }).then( user => results.push({
+				await Users.findOne({ where: {id: friends[i].userId} }).then( user => results.push({
 				id:       user.id,
 				username: user.username
 			}));
@@ -51,7 +51,7 @@ module.exports = (io, socket, args, callback) => {
 		});
 	});
 
-	else if(args.type == 'request') Friends.find({
+	else if(args.type == 'request') Friends.findOne({
 		where: {
 			userId:   userId,
 			friendId: args.friendId,
@@ -69,13 +69,13 @@ module.exports = (io, socket, args, callback) => {
 			error:  'Friend request already send'
 		});
 
-		Users.find({ where: {id: args.friendId} }).then(user => Friends.create({
+		Users.findOne({ where: {id: args.friendId} }).then(user => Friends.create({
 			userId:   userId,
 			friendId: user.id,
 			status:   0
 		}).then(friend => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == user.id);
+			let socketId = Object.entries(clientData).findOne(a => a[1].userid == user.id);
 			if(socketId) io.sockets.connected[socketId[0]].emit('friends-request', {
 				id:       userId,
 				username: clientData[socket.id].username,
@@ -88,16 +88,16 @@ module.exports = (io, socket, args, callback) => {
 		}));
 	});
 
-	else if(args.type == 'accept') Friends.find({ where: {userId: args.friendId, friendId: userId, status: 0} }).then(friend => {
+	else if(args.type == 'accept') Friends.findOne({ where: {userId: args.friendId, friendId: userId, status: 0} }).then(friend => {
 
 		if(!friend) return callback({
 			success: false,
 			error:  'Friend request not found'
 		});
 
-		friend.update({ status: 1 }).then(friend => Users.find({ where: {id: friend.friendId} }).then(user => {
+		friend.update({ status: 1 }).then(friend => Users.findOne({ where: {id: friend.friendId} }).then(user => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == friend.userId);
+			let socketId = Object.entries(clientData).findOne(a => a[1].userid == friend.userId);
 			if(socketId) io.sockets.connected[socketId[0]].emit('friends-accept', user);
 
 			return callback({
@@ -106,7 +106,7 @@ module.exports = (io, socket, args, callback) => {
 		}));
 	});
 
-	else if(args.type == 'deny') Friends.find({ where: {userId: args.friendId, friendId: userId, status: 0} }).then(friend => {
+	else if(args.type == 'deny') Friends.findOne({ where: {userId: args.friendId, friendId: userId, status: 0} }).then(friend => {
 
 		if(!friend) return callback({
 			success: true,
@@ -118,7 +118,7 @@ module.exports = (io, socket, args, callback) => {
 		}));
 	});
 
-	else if(args.type == 'remove') Friends.find({ where: {
+	else if(args.type == 'remove') Friends.findOne({ where: {
 		[Op.or]: [
 			{[Op.and]: [
 				{userId:   userId},
@@ -141,7 +141,7 @@ module.exports = (io, socket, args, callback) => {
 			status: 9
 		}).then(friend => {
 
-			let socketId = Object.entries(clientData).find(a => a[1].userid == args.friendId);
+			let socketId = Object.entries(clientData).findOne(a => a[1].userid == args.friendId);
 			if(socketId) io.sockets.connected[socketId[0]].emit('friends-remove', {
 				id: args.friendId
 			});

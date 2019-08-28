@@ -2,7 +2,7 @@ module.exports = (io, socket, args, callback) => {
 
 	let Tokens = mod.model('tokens');
 
-	Tokens.find({ where: {token: clientData[socket.id].token} }).then(token => {
+	Tokens.findOne({ where: {token: clientData[socket.id].token} }).then(token => {
 
 		if(!token) return callback({
 			success: false,

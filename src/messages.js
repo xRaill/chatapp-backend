@@ -14,7 +14,7 @@ module.exports = (io, socket, args, callback) => {
 
 		messages.reverse();
 
-		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => Access.find({
+		for (let i = 0; i < messages.length; i++) await messages[i].getUser().then(user => Access.findOne({
 			where: {
 				userId: clientData[socket.id].userid,
 				roomId: args.roomId,

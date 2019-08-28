@@ -1,10 +1,10 @@
 {
 	"dbhost": "localhost",
 	"dbuser": "root",
-	"dbpass": null,
+	"dbpass": "zentiveg",
 	"dbname": "chatapp",
 
-	"port": 8080,
+	"port": 8081,
 
 	"dbLogging": null
 }

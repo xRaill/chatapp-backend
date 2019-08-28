@@ -7,7 +7,7 @@ module.exports = (io, socket, args, callback) => {
 	let Tokens = mod.model('tokens');
 	let Access = mod.model('access');
 
-	Users.find({ where: {username: args.username} }).then(user => {
+	Users.findOne({ where: {username: args.username} }).then(user => {
 
 		if(!user) return callback({
 			success: false,

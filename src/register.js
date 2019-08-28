@@ -6,7 +6,7 @@ module.exports = (io, socket, args, callback) => {
 	let Tokens = mod.model('tokens'); 
 	let Users  = mod.model('user');
 
-	Users.find({ where: {username: args.username}}).then(res => {
+	Users.findOne({ where: {username: args.username}}).then(res => {
 		
 		if(res) return callback({
 			success: false,
